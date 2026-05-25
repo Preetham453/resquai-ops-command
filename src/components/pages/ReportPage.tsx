@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { TacticalBg, TacticalCard } from "@/components/TacticalBg";
-import { ArrowLeft, Camera, Crosshair, Loader2, Radio, Send, CheckCircle2, AlertTriangle, X } from "lucide-react";
+import { ArrowLeft, Camera, Crosshair, Loader2, Radio, Send, CheckCircle2, AlertTriangle, X, RefreshCw } from "lucide-react";
 import {
   EMERGENCY_TYPES,
   SEVERITIES,
@@ -25,7 +25,6 @@ export default function ReportPage() {
   const [geoStatus, setGeoStatus] = useState<"idle" | "locating" | "ok" | "error">("idle");
   const [geoError, setGeoError] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
-  const [camOpen, setCamOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<{ id: string } | null>(null);
 
@@ -206,23 +205,8 @@ export default function ReportPage() {
                 <div className="mt-1 text-right font-mono text-[10px] text-slate-500">{description.length}/1000</div>
               </Field>
 
-              <Field label="Field Imagery (optional)">
-                {photo ? (
-                  <div className="relative overflow-hidden rounded-md border border-slate-700">
-                    <img src={photo} alt="Captured" className="h-48 w-full object-cover" />
-                    <button onClick={() => setPhoto(null)} className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-slate-950/80 hover:bg-red-500/80">
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setCamOpen(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-slate-700 bg-slate-950/40 py-6 text-sm text-slate-400 hover:border-emerald-400 hover:text-emerald-400"
-                  >
-                    <Camera className="h-5 w-5" /> Capture from device camera
-                  </button>
-                )}
+              <Field label="Field Imagery — Live Camera Feed">
+                <LiveCamera photo={photo} onCapture={setPhoto} onClear={() => setPhoto(null)} />
               </Field>
 
               {formError && (
@@ -289,7 +273,6 @@ export default function ReportPage() {
         </div>
       </main>
 
-      {camOpen && <CameraModal onClose={() => setCamOpen(false)} onCapture={(b64) => { setPhoto(b64); setCamOpen(false); }} />}
     </div>
   );
 }
@@ -303,34 +286,40 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function CameraModal({ onClose, onCapture }: { onClose: () => void; onCapture: (b64: string) => void }) {
+function LiveCamera({ photo, onCapture, onClear }: { photo: string | null; onCapture: (b64: string) => void; onClear: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [facing, setFacing] = useState<"environment" | "user">("environment");
 
   useEffect(() => {
+    if (photo) return; // freeze feed when a frame is captured
     let cancelled = false;
+    setReady(false);
+    setErr(null);
     navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: "environment" }, audio: false })
+      .getUserMedia({ video: { facingMode: { ideal: facing } }, audio: false })
       .then((stream) => {
         if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => setReady(true);
+        const v = videoRef.current;
+        if (v) {
+          v.srcObject = stream;
+          v.onloadedmetadata = () => setReady(true);
         }
       })
-      .catch((e) => setErr(e.message ?? "Camera unavailable"));
+      .catch((e: Error) => setErr(e.message ?? "Camera unavailable"));
     return () => {
       cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     };
-  }, []);
+  }, [facing, photo]);
 
   function snap() {
     const v = videoRef.current;
-    if (!v) return;
+    if (!v || !v.videoWidth) return;
     const canvas = document.createElement("canvas");
     const w = Math.min(v.videoWidth, 1280);
     const scale = w / v.videoWidth;
@@ -338,35 +327,80 @@ function CameraModal({ onClose, onCapture }: { onClose: () => void; onCapture: (
     canvas.height = v.videoHeight * scale;
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
-    onCapture(canvas.toDataURL("image/jpeg", 0.7));
+    onCapture(canvas.toDataURL("image/jpeg", 0.78));
+  }
+
+  if (photo) {
+    return (
+      <div className="relative overflow-hidden rounded-md border border-emerald-400/40 emerald-glow">
+        <img src={photo} alt="Captured frame" className="aspect-video w-full object-cover" />
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-slate-950/70 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-emerald-300">
+          <CheckCircle2 className="h-3 w-3" /> Frame Captured
+        </div>
+        <button
+          type="button"
+          onClick={onClear}
+          className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-950/80 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 hover:bg-red-500/80 hover:text-white"
+        >
+          <RefreshCw className="h-3 w-3" /> Retake
+        </button>
+      </div>
+    );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-emerald-400/30 bg-slate-950 emerald-glow">
-        <div className="flex items-center justify-between border-b border-slate-800 p-3">
-          <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-400">Field Camera · Live Feed</div>
-          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full hover:bg-slate-800"><X className="h-4 w-4" /></button>
-        </div>
-        <div className="relative aspect-video bg-black">
-          {err ? (
-            <div className="flex h-full items-center justify-center p-6 text-center text-sm text-red-300">{err}</div>
-          ) : (
-            <>
-              <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
-              <div className="pointer-events-none absolute inset-4 rounded border-2 border-emerald-400/40">
-                <div className="absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-emerald-400" />
-                <div className="absolute -right-1 -top-1 h-4 w-4 border-r-2 border-t-2 border-emerald-400" />
-                <div className="absolute -bottom-1 -left-1 h-4 w-4 border-b-2 border-l-2 border-emerald-400" />
-                <div className="absolute -bottom-1 -right-1 h-4 w-4 border-b-2 border-r-2 border-emerald-400" />
+    <div className="overflow-hidden rounded-md border border-slate-700 bg-slate-950/60">
+      <div className="relative aspect-video bg-black">
+        {err ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
+            <Camera className="h-6 w-6 text-red-400" />
+            <div className="text-sm text-red-300">{err}</div>
+            <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Grant camera permission and reload</div>
+          </div>
+        ) : (
+          <>
+            <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+            <div className="pointer-events-none absolute inset-3 rounded border border-emerald-400/40">
+              <div className="absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-emerald-400" />
+              <div className="absolute -right-1 -top-1 h-4 w-4 border-r-2 border-t-2 border-emerald-400" />
+              <div className="absolute -bottom-1 -left-1 h-4 w-4 border-b-2 border-l-2 border-emerald-400" />
+              <div className="absolute -bottom-1 -right-1 h-4 w-4 border-b-2 border-r-2 border-emerald-400" />
+            </div>
+            <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-red-400/50 bg-slate-950/70 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-red-300">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-400" />
+              </span>
+              LIVE
+            </div>
+            <div className="absolute right-3 top-3 rounded-full border border-emerald-400/40 bg-slate-950/70 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-emerald-300">
+              {facing === "environment" ? "REAR CAM" : "FRONT CAM"}
+            </div>
+            {!ready && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                <Loader2 className="h-6 w-6 animate-spin text-emerald-400" />
               </div>
-            </>
-          )}
-        </div>
-        <div className="flex justify-center gap-3 p-4">
-          <button onClick={onClose} className="rounded-md border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800">Cancel</button>
-          <button onClick={snap} disabled={!ready || !!err} className="rounded-md bg-emerald-500 px-6 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-50">Capture Frame</button>
-        </div>
+            )}
+          </>
+        )}
+      </div>
+      <div className="flex items-center justify-between gap-2 border-t border-slate-800 p-2">
+        <button
+          type="button"
+          onClick={() => setFacing((f) => (f === "environment" ? "user" : "environment"))}
+          disabled={!!err}
+          className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+        >
+          <RefreshCw className="h-3.5 w-3.5" /> Flip
+        </button>
+        <button
+          type="button"
+          onClick={snap}
+          disabled={!ready || !!err}
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border-2 border-emerald-400 bg-emerald-500 px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-[0.25em] text-slate-950 emerald-glow hover:bg-emerald-400 disabled:opacity-50"
+        >
+          <Camera className="h-4 w-4" /> Capture Frame
+        </button>
       </div>
     </div>
   );
