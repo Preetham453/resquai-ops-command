@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      incidents: {
+        Row: {
+          created_at: string
+          description: string
+          emergency_type: Database["public"]["Enums"]["emergency_type"]
+          id: string
+          latitude: number
+          longitude: number
+          photo_base64: string | null
+          reporter_name: string
+          resolved_at: string | null
+          severity: Database["public"]["Enums"]["severity_level"]
+          status: Database["public"]["Enums"]["incident_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          emergency_type: Database["public"]["Enums"]["emergency_type"]
+          id?: string
+          latitude: number
+          longitude: number
+          photo_base64?: string | null
+          reporter_name: string
+          resolved_at?: string | null
+          severity: Database["public"]["Enums"]["severity_level"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          emergency_type?: Database["public"]["Enums"]["emergency_type"]
+          id?: string
+          latitude?: number
+          longitude?: number
+          photo_base64?: string | null
+          reporter_name?: string
+          resolved_at?: string | null
+          severity?: Database["public"]["Enums"]["severity_level"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +67,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      emergency_type:
+        | "Flood"
+        | "Fire"
+        | "Medical"
+        | "Structural Damage"
+        | "Other"
+      incident_status: "Active" | "Responding" | "Resolved"
+      severity_level: "Critical" | "High" | "Medium" | "Low"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +201,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      emergency_type: [
+        "Flood",
+        "Fire",
+        "Medical",
+        "Structural Damage",
+        "Other",
+      ],
+      incident_status: ["Active", "Responding", "Resolved"],
+      severity_level: ["Critical", "High", "Medium", "Low"],
+    },
   },
 } as const
