@@ -17,9 +17,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Lock, Shield, Radio, AlertOctagon, Flame, Droplets, Heart, Building2, HelpCircle, Activity, Clock, ZoomIn, Filter, Trash2 } from "lucide-react";
 
-export const Route = createFileRoute("/dashboard")({
-  component: DashboardPage,
-});
 
 const DISPATCHER_CODE = "RESQU-COMMAND-2025";
 

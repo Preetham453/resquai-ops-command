@@ -14,9 +14,6 @@ import {
   type Severity,
 } from "@/lib/incidents";
 
-export const Route = createFileRoute("/report")({
-  component: ReportPage,
-});
 
 function ReportPage() {
   const [name, setName] = useState("");
