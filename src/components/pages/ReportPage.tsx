@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { TacticalBg, TacticalCard } from "@/components/TacticalBg";
@@ -15,7 +15,7 @@ import {
 } from "@/lib/incidents";
 
 
-function ReportPage() {
+export default function ReportPage() {
   const [name, setName] = useState("");
   const [type, setType] = useState<EmergencyType>("Fire");
   const [severity, setSeverity] = useState<Severity>(autoSeverity("Fire"));

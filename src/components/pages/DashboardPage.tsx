@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
@@ -20,7 +20,7 @@ import { ArrowLeft, Lock, Shield, Radio, AlertOctagon, Flame, Droplets, Heart, B
 
 const DISPATCHER_CODE = "RESQU-COMMAND-2025";
 
-function DashboardPage() {
+export default function DashboardPage() {
   const [unlocked, setUnlocked] = useState(false);
   useEffect(() => { setUnlocked(sessionStorage.getItem("resqu-auth") === "1"); }, []);
   if (!unlocked) return <Gate onUnlock={() => { sessionStorage.setItem("resqu-auth", "1"); setUnlocked(true); }} />;
