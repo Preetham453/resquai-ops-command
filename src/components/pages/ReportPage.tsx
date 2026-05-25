@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { TacticalBg, TacticalCard } from "@/components/TacticalBg";
-import { ArrowLeft, Camera, Crosshair, Loader2, Radio, Send, CheckCircle2, AlertTriangle, X, RefreshCw } from "lucide-react";
+import { ArrowLeft, Camera, Crosshair, Loader2, Radio, Send, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
 import {
   EMERGENCY_TYPES,
   SEVERITIES,
