@@ -289,7 +289,7 @@ function IncidentRow({ incident, active, onSelect }: { incident: Incident; activ
   );
 }
 
-function DetailPanel({ incident, onClose }: { incident: Incident; onClose: () => void }) {
+function InlineDetail({ incident, onClose }: { incident: Incident; onClose: () => void }) {
   const qc = useQueryClient();
   const update = useMutation({
     mutationFn: (status: IncidentStatus) => updateIncidentStatus(incident.id, status),
@@ -305,15 +305,8 @@ function DetailPanel({ incident, onClose }: { incident: Incident; onClose: () =>
   const sev = severityColor(incident.severity);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/50 backdrop-blur-sm sm:items-center sm:p-6" onClick={onClose}>
-      <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <TacticalCard className="overflow-hidden p-0">
-          <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-            <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-400">Signal Detail · #{incident.id.slice(0, 8).toUpperCase()}</div>
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-200">✕</button>
-          </div>
-          <div className="max-h-[70vh] overflow-y-auto p-4">
-            {incident.photo_base64 && (
+    <div className="p-4">
+      {incident.photo_base64 && (
               <img src={incident.photo_base64} alt="Field" className="mb-3 w-full rounded-md border border-slate-700 object-cover" />
             )}
             <div className="flex flex-wrap gap-2">
@@ -359,9 +352,6 @@ function DetailPanel({ incident, onClose }: { incident: Incident; onClose: () =>
             >
               <Trash2 className="h-3.5 w-3.5" /> Purge from grid
             </button>
-          </div>
-        </TacticalCard>
-      </div>
     </div>
   );
 }
