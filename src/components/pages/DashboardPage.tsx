@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Lock, Shield, Radio, AlertOctagon, Flame, Droplets, Heart, Building2, HelpCircle, Activity, Clock, ZoomIn, Filter, Trash2 } from "lucide-react";
 
 
-const DISPATCHER_CODE = "RESQU-COMMAND-2025";
+const DISPATCHER_CODE = "BLUEORCHIDS2K26";
 
 export default function DashboardPage() {
   const [unlocked, setUnlocked] = useState(false);
@@ -142,7 +142,7 @@ function Command() {
           <StatTile label="Total Signals" value={incidents.length} icon={<Radio className="h-4 w-4" />} glow="emerald" />
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_420px]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px_400px]">
           <TacticalCard className="overflow-hidden p-0">
             <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
               <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-400">Tactical Grid · Live Map</div>
@@ -209,9 +209,26 @@ function Command() {
               </div>
             </TacticalCard>
           </div>
+
+          <TacticalCard className="flex h-[calc(60vh+60px)] min-h-[520px] flex-col overflow-hidden p-0">
+            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-400">Command Panel</div>
+              {focus && (
+                <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+                  #{focus.id.slice(0, 8).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {focus ? (
+                <InlineDetail incident={focus} onClose={() => setFocusId(null)} />
+              ) : (
+                <Empty msg="Select an incident from the queue to deploy command actions." />
+              )}
+            </div>
+          </TacticalCard>
         </div>
 
-        {focus && <DetailPanel incident={focus} onClose={() => setFocusId(null)} />}
       </main>
     </div>
   );
