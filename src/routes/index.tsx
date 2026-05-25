@@ -86,4 +86,3 @@ function PortalCard({ to, title, desc, icon, glow }: { to: string; title: string
     </Link>
   );
 }
-}
