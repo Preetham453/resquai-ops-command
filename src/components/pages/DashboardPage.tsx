@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Lock, Shield, Radio, AlertOctagon, Flame, Droplets, Heart, Building2, HelpCircle, Activity, Clock, ZoomIn, Filter, Trash2 } from "lucide-react";
 
 
-const DISPATCHER_CODE = "RESQU-COMMAND-2025";
+const DISPATCHER_CODE = "BLUEORCHIDS2K26";
 
 export default function DashboardPage() {
   const [unlocked, setUnlocked] = useState(false);
@@ -142,7 +142,7 @@ function Command() {
           <StatTile label="Total Signals" value={incidents.length} icon={<Radio className="h-4 w-4" />} glow="emerald" />
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_420px]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px_400px]">
           <TacticalCard className="overflow-hidden p-0">
             <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
               <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-400">Tactical Grid · Live Map</div>
@@ -209,9 +209,26 @@ function Command() {
               </div>
             </TacticalCard>
           </div>
+
+          <TacticalCard className="flex h-[calc(60vh+60px)] min-h-[520px] flex-col overflow-hidden p-0">
+            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+              <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-400">Command Panel</div>
+              {focus && (
+                <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+                  #{focus.id.slice(0, 8).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {focus ? (
+                <InlineDetail incident={focus} onClose={() => setFocusId(null)} />
+              ) : (
+                <Empty msg="Select an incident from the queue to deploy command actions." />
+              )}
+            </div>
+          </TacticalCard>
         </div>
 
-        {focus && <DetailPanel incident={focus} onClose={() => setFocusId(null)} />}
       </main>
     </div>
   );
@@ -272,7 +289,7 @@ function IncidentRow({ incident, active, onSelect }: { incident: Incident; activ
   );
 }
 
-function DetailPanel({ incident, onClose }: { incident: Incident; onClose: () => void }) {
+function InlineDetail({ incident, onClose }: { incident: Incident; onClose: () => void }) {
   const qc = useQueryClient();
   const update = useMutation({
     mutationFn: (status: IncidentStatus) => updateIncidentStatus(incident.id, status),
@@ -288,15 +305,8 @@ function DetailPanel({ incident, onClose }: { incident: Incident; onClose: () =>
   const sev = severityColor(incident.severity);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/50 backdrop-blur-sm sm:items-center sm:p-6" onClick={onClose}>
-      <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <TacticalCard className="overflow-hidden p-0">
-          <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-            <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-400">Signal Detail · #{incident.id.slice(0, 8).toUpperCase()}</div>
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-200">✕</button>
-          </div>
-          <div className="max-h-[70vh] overflow-y-auto p-4">
-            {incident.photo_base64 && (
+    <div className="p-4">
+      {incident.photo_base64 && (
               <img src={incident.photo_base64} alt="Field" className="mb-3 w-full rounded-md border border-slate-700 object-cover" />
             )}
             <div className="flex flex-wrap gap-2">
@@ -342,9 +352,6 @@ function DetailPanel({ incident, onClose }: { incident: Incident; onClose: () =>
             >
               <Trash2 className="h-3.5 w-3.5" /> Purge from grid
             </button>
-          </div>
-        </TacticalCard>
-      </div>
     </div>
   );
 }
