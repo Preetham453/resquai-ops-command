@@ -70,10 +70,12 @@ Dashboard Output
 # 📷 Screenshots
 
 ## Homepage
-Add screenshot here
+<img width="1859" height="828" alt="Screenshot 2026-05-26 063634" src="https://github.com/user-attachments/assets/0747f1ce-5c0e-46a5-95a7-01752a45723c" />
+
 
 ## Dashboard
-Add screenshot here
+<img width="1836" height="234" alt="Screenshot 2026-05-26 063755" src="https://github.com/user-attachments/assets/880072e1-5d09-429c-b1ac-80763e59678f" />
+
 
 ---
 
