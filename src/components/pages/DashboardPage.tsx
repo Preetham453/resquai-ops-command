@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import { TacticalBg, TacticalCard, SignalBars } from "@/components/TacticalBg";
 import {
@@ -149,12 +149,14 @@ function Command() {
               <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">{filtered.length} signals plotted</div>
             </div>
             <div className="h-[60vh] min-h-[460px] w-full">
-              <MapContainer center={center} zoom={12} className="h-full w-full" preferCanvas zoomControl={false}>
+              <MapContainer center={center} zoom={13} className="h-full w-full" preferCanvas zoomControl={false}>
                 <ZoomCtrl />
                 <TileLayer
-                  attribution="&copy; OpenStreetMap"
-                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  maxZoom={19}
                 />
+                <LiveTracker />
                 <FocusFly focus={focus} />
                 {filtered.map((i) => {
                   const c = severityColor(i.severity);
