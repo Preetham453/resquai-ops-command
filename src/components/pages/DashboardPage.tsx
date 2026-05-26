@@ -366,6 +366,54 @@ function FocusFly({ focus }: { focus: Incident | null }) {
   return null;
 }
 
+function LiveTracker() {
+  const map = useMap();
+  const [pos, setPos] = useState<[number, number] | null>(null);
+  const [acc, setAcc] = useState<number>(0);
+  const centeredRef = useState({ done: false })[0];
+  useEffect(() => {
+    if (!("geolocation" in navigator)) return;
+    const id = navigator.geolocation.watchPosition(
+      (p) => {
+        const next: [number, number] = [p.coords.latitude, p.coords.longitude];
+        setPos(next);
+        setAcc(p.coords.accuracy ?? 0);
+        if (!centeredRef.done) {
+          centeredRef.done = true;
+          map.flyTo(next, 15, { duration: 0.8 });
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, [map, centeredRef]);
+  if (!pos) return null;
+  return (
+    <>
+      <CircleMarker
+        center={pos}
+        radius={8}
+        pathOptions={{ color: "#10b981", fillColor: "#10b981", fillOpacity: 0.9, weight: 2 }}
+      >
+        <Popup>
+          <div className="font-mono text-xs">
+            <div className="font-bold">You are here</div>
+            <div>±{Math.round(acc)}m</div>
+          </div>
+        </Popup>
+      </CircleMarker>
+      {acc > 0 && (
+        <CircleMarker
+          center={pos}
+          radius={Math.min(40, Math.max(12, acc / 5))}
+          pathOptions={{ color: "#10b981", fillColor: "#10b981", fillOpacity: 0.08, weight: 1, dashArray: "4 4" }}
+        />
+      )}
+    </>
+  );
+}
+
 function ZoomCtrl() {
   const map = useMap();
   useEffect(() => {
